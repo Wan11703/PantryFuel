@@ -6,6 +6,7 @@ from app.database.session import engine
 
 from app.api.routes.auth import router as auth_router
 
+from app.api.routes.pantry import router as pantry_router
 
 app = FastAPI(
     title="PantryFuel API",
@@ -29,6 +30,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(pantry_router)
 
 
 @app.get("/")
