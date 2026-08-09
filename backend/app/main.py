@@ -4,6 +4,8 @@ from sqlalchemy import text
 
 from app.database.session import engine
 
+from app.api.routes.auth import router as auth_router
+
 
 app = FastAPI(
     title="PantryFuel API",
@@ -25,6 +27,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router)
 
 
 @app.get("/")
