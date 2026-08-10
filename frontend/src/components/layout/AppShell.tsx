@@ -93,9 +93,19 @@ export default function AppShell({
             </NavLink>
 
 
-            <div className="cursor-not-allowed rounded-xl px-4 py-3 text-sm text-slate-400">
-              Recipes
-            </div>
+            <NavLink
+                to="/recipes"
+                className={({ isActive }) =>
+                    [
+                    "block rounded-xl px-4 py-3 text-sm font-medium",
+                    isActive
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "text-slate-600 hover:bg-slate-50",
+                    ].join(" ")
+                }
+                >
+                Recipes
+                </NavLink>
 
 
             <div className="cursor-not-allowed rounded-xl px-4 py-3 text-sm text-slate-400">

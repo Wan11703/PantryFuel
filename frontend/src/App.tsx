@@ -10,6 +10,9 @@ import Login from "./pages/Login";
 import Pantry from "./pages/Pantry";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
+import Recipes from "./pages/Recipes";
+import RecipeDetails from "./pages/RecipeDetails";
+
 
 function App() {
   return (
@@ -27,6 +30,29 @@ function App() {
             <ProtectedRoute>
               <AppShell>
                 <Pantry />
+              </AppShell>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/recipes"
+          element={
+            <ProtectedRoute>
+              <AppShell>
+                <Recipes />
+              </AppShell>
+            </ProtectedRoute>
+          }
+        />
+
+
+        <Route
+          path="/recipes/:recipeId"
+          element={
+            <ProtectedRoute>
+              <AppShell>
+                <RecipeDetails />
               </AppShell>
             </ProtectedRoute>
           }
