@@ -57,6 +57,22 @@ function formatQuantity(
 }
 
 
+function formatGrams(
+  value: number | string | null
+) {
+  if (value === null) {
+    return "Unknown";
+  }
+
+  return `${Number(value).toLocaleString(
+    undefined,
+    {
+      maximumFractionDigits: 2,
+    }
+  )} g`;
+}
+
+
 export default function Recipes() {
   const [
     matches,
@@ -206,7 +222,7 @@ export default function Recipes() {
 
 
       {/* ===================== */}
-      {/* Empty catalog */}
+      {/* Empty Catalog */}
       {/* ===================== */}
 
       {!isLoading &&
@@ -314,15 +330,14 @@ export default function Recipes() {
                     : "border border-slate-300 bg-white text-slate-600 hover:bg-slate-50",
                 ].join(" ")}
               >
-                Can Cook
-                {" "}
+                Can Cook{" "}
                 ({cookableCount})
               </button>
 
             </div>
 
 
-            {/* No cookable recipes */}
+            {/* No Cookable Recipes */}
             {visibleMatches.length ===
               0 && (
               <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
@@ -350,7 +365,7 @@ export default function Recipes() {
             )}
 
 
-            {/* Cards */}
+            {/* Recipe Cards */}
             {visibleMatches.length >
               0 && (
               <div className="mt-6 grid gap-5 lg:grid-cols-2">
@@ -360,16 +375,15 @@ export default function Recipes() {
                     const recipe =
                       match.recipe;
 
-                    const missingIds =
-                      new Set(
-                        match
-                          .missing_ingredients
-                          .map(
-                            (
-                              ingredient
-                            ) =>
-                              ingredient.id
-                          )
+
+                    const issuesByIngredient =
+                      new Map(
+                        match.missing_ingredients.map(
+                          (ingredient) => [
+                            ingredient.id,
+                            ingredient,
+                          ]
+                        )
                       );
 
 
@@ -381,7 +395,10 @@ export default function Recipes() {
                         className="rounded-2xl border border-slate-200 bg-white p-6"
                       >
 
+                        {/* ================= */}
                         {/* Top */}
+                        {/* ================= */}
+
                         <div className="flex items-start justify-between gap-5">
 
                           <div>
@@ -424,7 +441,10 @@ export default function Recipes() {
                         </div>
 
 
-                        {/* Match */}
+                        {/* ================= */}
+                        {/* Pantry Match */}
+                        {/* ================= */}
+
                         <div className="mt-5">
 
                           <div className="flex items-center justify-between gap-4">
@@ -489,7 +509,10 @@ export default function Recipes() {
                         </div>
 
 
+                        {/* ================= */}
                         {/* Times */}
+                        {/* ================= */}
+
                         <div className="mt-5 flex flex-wrap gap-4 text-sm text-slate-500">
 
                           <span>
@@ -526,7 +549,10 @@ export default function Recipes() {
                         </div>
 
 
+                        {/* ================= */}
                         {/* Ingredients */}
+                        {/* ================= */}
+
                         <div className="mt-6">
 
                           <p className="text-sm font-medium text-slate-700">
@@ -542,13 +568,31 @@ export default function Recipes() {
                                 (
                                   item
                                 ) => {
-                                  const
-                                    isMissing =
-                                      missingIds.has(
-                                        item
-                                          .ingredient
-                                          .id
-                                      );
+                                  const issue =
+                                    issuesByIngredient.get(
+                                      item
+                                        .ingredient
+                                        .id
+                                    );
+
+
+                                  const isAvailable =
+                                    !issue;
+
+
+                                  const isMissing =
+                                    issue?.reason ===
+                                    "missing";
+
+
+                                  const isInsufficient =
+                                    issue?.reason ===
+                                    "insufficient";
+
+
+                                  const conversionUnavailable =
+                                    issue?.reason ===
+                                    "conversion_unavailable";
 
 
                                   return (
@@ -556,45 +600,141 @@ export default function Recipes() {
                                       key={
                                         item.id
                                       }
-                                      className="flex items-center justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3"
+                                      className="rounded-xl bg-slate-50 px-4 py-3"
                                     >
 
-                                      <div className="flex items-center gap-3">
+                                      <div className="flex items-center justify-between gap-4">
 
-                                        <span
-                                          className={
-                                            isMissing
-                                              ? "text-red-500"
-                                              : "text-emerald-600"
+                                        <div className="flex items-center gap-3">
+
+                                          {/* Status */}
+                                          <span
+                                            className={
+                                              isAvailable
+                                                ? "text-emerald-600"
+                                                : isInsufficient ||
+                                                  conversionUnavailable
+                                                ? "text-amber-500"
+                                                : "text-red-500"
+                                            }
+                                          >
+
+                                            {isAvailable
+                                              ? "✓"
+                                              : isMissing
+                                              ? "✕"
+                                              : "!"}
+
+                                          </span>
+
+
+                                          {/* Name */}
+                                          <p className="text-sm font-medium text-slate-700">
+
+                                            {formatIngredientName(
+                                              item
+                                                .ingredient
+                                                .name
+                                            )}
+
+                                          </p>
+
+                                        </div>
+
+
+                                        {/* Recipe requirement */}
+                                        <p className="shrink-0 text-sm text-slate-500">
+
+                                          {formatQuantity(
+                                            item.quantity
+                                          )}{" "}
+                                          {
+                                            item.unit
                                           }
-                                        >
-                                          {isMissing
-                                            ? "✕"
-                                            : "✓"}
-                                        </span>
 
-
-                                        <p className="text-sm font-medium text-slate-700">
-                                          {formatIngredientName(
-                                            item
-                                              .ingredient
-                                              .name
-                                          )}
                                         </p>
 
                                       </div>
 
 
-                                      <p className="text-sm text-slate-500">
+                                      {/* Insufficient */}
+                                      {isInsufficient &&
+                                        issue && (
 
-                                        {formatQuantity(
-                                          item.quantity
-                                        )}{" "}
-                                        {
-                                          item.unit
-                                        }
+                                          <div className="mt-3 ml-7 grid gap-2 text-sm sm:grid-cols-3">
 
-                                      </p>
+                                            <div>
+
+                                              <p className="text-xs text-slate-400">
+                                                Need
+                                              </p>
+
+                                              <p className="font-medium text-slate-700">
+                                                {formatGrams(
+                                                  issue.required_grams
+                                                )}
+                                              </p>
+
+                                            </div>
+
+
+                                            <div>
+
+                                              <p className="text-xs text-slate-400">
+                                                Have
+                                              </p>
+
+                                              <p className="font-medium text-amber-700">
+                                                {formatGrams(
+                                                  issue.available_grams
+                                                )}
+                                              </p>
+
+                                            </div>
+
+
+                                            <div>
+
+                                              <p className="text-xs text-slate-400">
+                                                Short
+                                              </p>
+
+                                              <p className="font-medium text-red-600">
+                                                {formatGrams(
+                                                  issue.shortage_grams
+                                                )}
+                                              </p>
+
+                                            </div>
+
+                                          </div>
+                                        )}
+
+
+                                      {/* Completely missing */}
+                                      {isMissing &&
+                                        issue && (
+
+                                          <p className="mt-2 ml-7 text-xs text-red-500">
+                                            Not currently in
+                                            your pantry.
+                                          </p>
+
+                                        )}
+
+
+                                      {/* Conversion unavailable */}
+                                      {conversionUnavailable &&
+                                        issue && (
+
+                                          <p className="mt-2 ml-7 text-xs text-amber-600">
+                                            PantryFuel cannot
+                                            compare this quantity
+                                            because a unit conversion
+                                            is unavailable.
+                                          </p>
+
+                                        )}
 
                                     </div>
                                   );
@@ -606,40 +746,143 @@ export default function Recipes() {
                         </div>
 
 
-                        {/* Missing */}
+                        {/* ================= */}
+                        {/* Needs Attention */}
+                        {/* ================= */}
+
                         {!match.can_cook &&
                           match
                             .missing_ingredients
                             .length >
                             0 && (
+
                             <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
 
                               <p className="text-sm font-medium text-amber-800">
-                                Missing
+                                Needs Attention
                               </p>
 
 
-                              <div className="mt-2 flex flex-wrap gap-2">
+                              <div className="mt-3 space-y-3">
 
                                 {match
                                   .missing_ingredients
                                   .map(
                                     (
                                       ingredient
-                                    ) => (
-                                      <span
-                                        key={
-                                          ingredient.id
-                                        }
-                                        className="rounded-full bg-white px-3 py-1 text-sm text-amber-700"
-                                      >
+                                    ) => {
 
-                                        {formatIngredientName(
-                                          ingredient.name
-                                        )}
+                                      if (
+                                        ingredient.reason ===
+                                        "missing"
+                                      ) {
+                                        return (
+                                          <div
+                                            key={
+                                              ingredient.id
+                                            }
+                                            className="flex items-center justify-between gap-4"
+                                          >
 
-                                      </span>
-                                    )
+                                            <p className="text-sm text-amber-800">
+
+                                              {formatIngredientName(
+                                                ingredient.name
+                                              )}
+
+                                            </p>
+
+
+                                            <span className="text-xs font-medium text-red-600">
+                                              Missing
+                                            </span>
+
+                                          </div>
+                                        );
+                                      }
+
+
+                                      if (
+                                        ingredient.reason ===
+                                        "insufficient"
+                                      ) {
+                                        return (
+                                          <div
+                                            key={
+                                              ingredient.id
+                                            }
+                                          >
+
+                                            <div className="flex items-center justify-between gap-4">
+
+                                              <p className="text-sm font-medium text-amber-800">
+
+                                                {formatIngredientName(
+                                                  ingredient.name
+                                                )}
+
+                                              </p>
+
+
+                                              <span className="text-xs font-medium text-amber-700">
+                                                Not enough
+                                              </span>
+
+                                            </div>
+
+
+                                            <p className="mt-1 text-xs text-amber-700">
+
+                                              Have{" "}
+                                              {formatGrams(
+                                                ingredient.available_grams
+                                              )}
+
+                                              {" · "}
+
+                                              Need{" "}
+                                              {formatGrams(
+                                                ingredient.required_grams
+                                              )}
+
+                                              {" · "}
+
+                                              Short{" "}
+                                              {formatGrams(
+                                                ingredient.shortage_grams
+                                              )}
+
+                                            </p>
+
+                                          </div>
+                                        );
+                                      }
+
+
+                                      return (
+                                        <div
+                                          key={
+                                            ingredient.id
+                                          }
+                                          className="flex items-center justify-between gap-4"
+                                        >
+
+                                          <p className="text-sm text-amber-800">
+
+                                            {formatIngredientName(
+                                              ingredient.name
+                                            )}
+
+                                          </p>
+
+
+                                          <span className="text-xs font-medium text-amber-700">
+                                            Conversion unavailable
+                                          </span>
+
+                                        </div>
+                                      );
+                                    }
                                   )}
 
                               </div>
@@ -648,26 +891,31 @@ export default function Recipes() {
                           )}
 
 
+                        {/* ================= */}
                         {/* Footer */}
-                        <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-5">
+                        {/* ================= */}
+
+                        <div className="mt-6 flex items-center justify-between gap-4 border-t border-slate-100 pt-5">
 
                           <p className="text-sm text-slate-400">
+
                             {match.can_cook
-                              ? "Everything you need is in your pantry."
+                              ? "You have enough of every ingredient."
                               : `${match.missing_ingredients.length} ${
                                   match
                                     .missing_ingredients
                                     .length ===
                                   1
-                                    ? "ingredient"
-                                    : "ingredients"
-                                } missing`}
+                                    ? "ingredient needs"
+                                    : "ingredients need"
+                                } attention`}
+
                           </p>
 
 
                           <Link
                             to={`/recipes/${recipe.id}`}
-                            className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
+                            className="shrink-0 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
                           >
                             View Recipe
                           </Link>

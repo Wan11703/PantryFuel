@@ -101,8 +101,15 @@ class RecipeNutritionResponse(BaseModel):
 class MissingIngredientResponse(BaseModel):
     id: UUID
     name: str
+
     quantity: Decimal
     unit: str
+
+    required_grams: Decimal | None = None
+    available_grams: Decimal | None = None
+    shortage_grams: Decimal | None = None
+
+    reason: str
 
 
 class RecipeMatchResponse(BaseModel):

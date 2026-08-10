@@ -53,11 +53,24 @@ export type RecipeNutrition = {
   per_serving: MacroTotals | null;
 };
 
+export type IngredientIssueReason =
+  | "missing"
+  | "insufficient"
+  | "conversion_unavailable";
+
+
 export type MissingIngredient = {
   id: string;
   name: string;
+
   quantity: number | string;
   unit: string;
+
+  required_grams: number | string | null;
+  available_grams: number | string | null;
+  shortage_grams: number | string | null;
+
+  reason: IngredientIssueReason;
 };
 
 
