@@ -10,6 +10,9 @@ from app.api.routes.pantry import router as pantry_router
 
 from app.api.routes.nutrition import router as nutrition_router
 
+from app.api.routes.recipes import (
+    router as recipes_router,
+)
 
 app = FastAPI(
     title="PantryFuel API",
@@ -35,6 +38,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(pantry_router)
 app.include_router(nutrition_router)
+app.include_router(recipes_router)
 
 
 

@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 import uuid
 from datetime import datetime
 from decimal import Decimal
@@ -7,6 +10,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
+
 
 
 class Ingredient(Base):
@@ -86,5 +90,11 @@ class Ingredient(Base):
     )
 
     pantry_items: Mapped[list["PantryItem"]] = relationship(
+        back_populates="ingredient",
+    )
+
+    recipe_ingredients: Mapped[
+        list["RecipeIngredient"]
+    ] = relationship(
         back_populates="ingredient",
     )

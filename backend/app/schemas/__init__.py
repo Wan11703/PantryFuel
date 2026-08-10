@@ -12,6 +12,24 @@ from app.schemas.nutrition import (
     NutritionGoalUpsert,
 )
 
+from app.schemas.recipe import (
+    RecipeCreate,
+    RecipeIngredientCreate,
+    RecipeIngredientDetail,
+    RecipeIngredientResponse,
+    RecipeResponse,
+)
+
+from app.schemas.recipe import (
+    MacroTotals,
+    RecipeCreate,
+    RecipeIngredientCreate,
+    RecipeIngredientDetail,
+    RecipeIngredientResponse,
+    RecipeNutritionResponse,
+    RecipeResponse,
+)
+
 
 __all__ = [
     "LoginRequest",
@@ -24,4 +42,7 @@ __all__ = [
     "PantryItemResponse",
     "NutritionGoalResponse",
     "NutritionGoalUpsert",
+    "MacroTotals",
+    "RecipeNutritionResponse",
+    "RecipeResponse",
 ]
