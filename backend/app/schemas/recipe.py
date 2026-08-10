@@ -98,6 +98,26 @@ class RecipeNutritionResponse(BaseModel):
     total: MacroTotals | None
     per_serving: MacroTotals | None
 
+class MissingIngredientResponse(BaseModel):
+    id: UUID
+    name: str
+    quantity: Decimal
+    unit: str
+
+
+class RecipeMatchResponse(BaseModel):
+    recipe: RecipeResponse
+
+    total_ingredients: int
+    matched_ingredients: int
+    match_percentage: Decimal
+
+    can_cook: bool
+
+    missing_ingredients: list[
+        MissingIngredientResponse
+    ]
+
 
 class RecipeResponse(BaseModel):
     id: UUID

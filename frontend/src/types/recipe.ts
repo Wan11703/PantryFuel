@@ -52,3 +52,24 @@ export type RecipeNutrition = {
   total: MacroTotals | null;
   per_serving: MacroTotals | null;
 };
+
+export type MissingIngredient = {
+  id: string;
+  name: string;
+  quantity: number | string;
+  unit: string;
+};
+
+
+export type RecipeMatch = {
+  recipe: Recipe;
+
+  total_ingredients: number;
+  matched_ingredients: number;
+
+  match_percentage: number | string;
+
+  can_cook: boolean;
+
+  missing_ingredients: MissingIngredient[];
+};

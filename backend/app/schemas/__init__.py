@@ -30,6 +30,10 @@ from app.schemas.recipe import (
     RecipeResponse,
 )
 
+from app.schemas.recipe import (
+    MissingIngredientResponse,
+    RecipeMatchResponse,
+)
 
 __all__ = [
     "LoginRequest",
@@ -45,4 +49,6 @@ __all__ = [
     "MacroTotals",
     "RecipeNutritionResponse",
     "RecipeResponse",
+    "MissingIngredientResponse",
+    "RecipeMatchResponse",
 ]

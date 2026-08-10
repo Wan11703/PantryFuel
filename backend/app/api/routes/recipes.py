@@ -13,6 +13,7 @@ from app.database.dependencies import get_db
 from app.models.user import User
 from app.schemas.recipe import (
     RecipeCreate,
+    RecipeMatchResponse,
     RecipeNutritionResponse,
     RecipeResponse,
 )
@@ -22,6 +23,10 @@ from app.services.recipe_service import (
     create_recipe,
     get_recipe,
     get_recipes,
+)
+
+from app.services.recipe_match_service import (
+    get_recipe_matches,
 )
 
 
@@ -58,6 +63,24 @@ def list_recipes(
     db: Session = Depends(get_db),
 ):
     return get_recipes(db)
+
+
+@router.get(
+    "/pantry-matches",
+    response_model=list[
+        RecipeMatchResponse
+    ],
+)
+def list_pantry_recipe_matches(
+    current_user: User = Depends(
+        get_current_user
+    ),
+    db: Session = Depends(get_db),
+):
+    return get_recipe_matches(
+        db,
+        current_user.id,
+    )
 
 
 @router.get(
