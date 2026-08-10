@@ -72,6 +72,58 @@ function formatGrams(
   )} g`;
 }
 
+function formatExpirationDate(
+  value: string
+) {
+  return new Date(
+    `${value}T00:00:00`
+  ).toLocaleDateString(
+    undefined,
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }
+  );
+}
+
+
+function formatExpirationLabel(
+  days: number
+) {
+  if (days === 0) {
+    return "Expires today";
+  }
+
+  if (days === 1) {
+    return "Expires tomorrow";
+  }
+
+  return `Expires in ${days} days`;
+}
+
+
+function getExpirationPriorityLabel(
+  score: number | string
+) {
+  const numericScore =
+    Number(score);
+
+  if (numericScore >= 50) {
+    return "High priority";
+  }
+
+  if (numericScore >= 25) {
+    return "Use soon";
+  }
+
+  if (numericScore > 0) {
+    return "Expiring";
+  }
+
+  return null;
+}
+
 
 export default function Recipes() {
   const [
@@ -386,6 +438,21 @@ export default function Recipes() {
                         )
                       );
 
+                      const expirationScore =
+                        Number(
+                            match.expiration_score
+                        );
+
+
+                        const expirationPriority =
+                        getExpirationPriorityLabel(
+                            match.expiration_score
+                        );
+
+
+                        const earliestExpiringIngredient =
+                        match.expiring_ingredients[0];
+
 
                     return (
                       <article
@@ -418,25 +485,35 @@ export default function Recipes() {
                           </div>
 
 
-                          {match.can_cook ? (
+                          <div className="flex shrink-0 flex-col items-end gap-2">
 
-                            <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                              ✓ CAN COOK
-                            </span>
+                            {match.can_cook ? (
 
-                          ) : (
+                                <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+                                ✓ CAN COOK
+                                </span>
 
-                            <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">
+                            ) : (
 
-                              {formatPercentage(
-                                match
-                                  .match_percentage
-                              )}
-                              % MATCH
+                                <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">
 
-                            </span>
+                                {formatPercentage(
+                                    match.match_percentage
+                                )}
+                                % MATCH
 
-                          )}
+                                </span>
+
+                            )}
+
+
+                            {expirationPriority && (
+                                <span className="rounded-full bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700">
+                                ⏱ {expirationPriority.toUpperCase()}
+                                </span>
+                            )}
+
+                            </div>
 
                         </div>
 
@@ -507,6 +584,121 @@ export default function Recipes() {
                           </p>
 
                         </div>
+
+                        {/* ================= */}
+                        {/* Expiration Priority */}
+                        {/* ================= */}
+
+                        {match.expiring_ingredients.length >
+                        0 && (
+
+                        <div className="mt-5 rounded-xl border border-orange-200 bg-orange-50 p-4">
+
+                            <div className="flex flex-wrap items-start justify-between gap-4">
+
+                            <div>
+
+                                <p className="text-sm font-semibold text-orange-800">
+                                Use Soon
+                                </p>
+
+                                <p className="mt-1 text-xs text-orange-700">
+                                This recipe can help use
+                                ingredients before they
+                                expire.
+                                </p>
+
+                            </div>
+
+
+                            <div className="text-right">
+
+                                <p className="text-xs text-orange-600">
+                                Expiration Priority
+                                </p>
+
+                                <p className="mt-1 text-lg font-semibold text-orange-800">
+
+                                {expirationScore.toLocaleString(
+                                    undefined,
+                                    {
+                                    maximumFractionDigits: 1,
+                                    }
+                                )}
+
+                                </p>
+
+                            </div>
+
+                            </div>
+
+
+                            <div className="mt-4 space-y-2">
+
+                            {match.expiring_ingredients.map(
+                                (
+                                ingredient,
+                                index
+                                ) => (
+
+                                <div
+                                    key={`${ingredient.id}-${ingredient.expiration_date}-${index}`}
+                                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white px-3 py-2.5"
+                                >
+
+                                    <div>
+
+                                    <p className="text-sm font-medium text-slate-800">
+
+                                        {formatIngredientName(
+                                        ingredient.name
+                                        )}
+
+                                    </p>
+
+
+                                    <p className="mt-0.5 text-xs text-orange-700">
+
+                                        {formatExpirationLabel(
+                                        ingredient.days_until_expiration
+                                        )}
+
+                                    </p>
+
+                                    </div>
+
+
+                                    <div className="text-right">
+
+                                    <p className="text-xs text-slate-500">
+
+                                        {formatExpirationDate(
+                                        ingredient.expiration_date
+                                        )}
+
+                                    </p>
+
+
+                                    <p className="mt-0.5 text-xs text-slate-400">
+
+                                        Uses{" "}
+                                        {formatGrams(
+                                        ingredient.quantity_used_grams
+                                        )}
+
+                                    </p>
+
+                                    </div>
+
+                                </div>
+
+                                )
+                            )}
+
+                            </div>
+
+                        </div>
+                        )}
 
 
                         {/* ================= */}
@@ -890,7 +1082,26 @@ export default function Recipes() {
                             </div>
                           )}
 
+                        {/* Recommendation */}
+                        {match.can_cook &&
+                        earliestExpiringIngredient && (
 
+                        <div className="mt-5">
+
+                            <p className="text-sm font-medium text-orange-700">
+
+                            💡 Good choice to use{" "}
+
+                            {formatIngredientName(
+                                earliestExpiringIngredient.name
+                            )}{" "}
+
+                            before it expires.
+
+                            </p>
+
+                        </div>
+                        )}
                         {/* ================= */}
                         {/* Footer */}
                         {/* ================= */}
@@ -900,12 +1111,11 @@ export default function Recipes() {
                           <p className="text-sm text-slate-400">
 
                             {match.can_cook
-                              ? "You have enough of every ingredient."
-                              : `${match.missing_ingredients.length} ${
-                                  match
-                                    .missing_ingredients
-                                    .length ===
-                                  1
+                            ? expirationScore > 0
+                                ? "Cookable now and uses ingredients expiring soon."
+                                : "You have enough of every ingredient."
+                            : `${match.missing_ingredients.length} ${
+                                match.missing_ingredients.length === 1
                                     ? "ingredient needs"
                                     : "ingredients need"
                                 } attention`}

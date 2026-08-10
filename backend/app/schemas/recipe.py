@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -111,18 +111,34 @@ class MissingIngredientResponse(BaseModel):
 
     reason: str
 
+class ExpiringIngredientResponse(BaseModel):
+    id: UUID
+    name: str
+
+    expiration_date: date
+    days_until_expiration: int
+
+    quantity_used_grams: Decimal
+    urgency_score: Decimal
 
 class RecipeMatchResponse(BaseModel):
     recipe: RecipeResponse
 
     total_ingredients: int
     matched_ingredients: int
+
     match_percentage: Decimal
 
     can_cook: bool
 
     missing_ingredients: list[
         MissingIngredientResponse
+    ]
+
+    expiration_score: Decimal
+
+    expiring_ingredients: list[
+        ExpiringIngredientResponse
     ]
 
 

@@ -33,6 +33,7 @@ from app.schemas.recipe import (
 from app.schemas.recipe import (
     MissingIngredientResponse,
     RecipeMatchResponse,
+    ExpiringIngredientResponse,
 )
 
 __all__ = [
@@ -51,4 +52,5 @@ __all__ = [
     "RecipeResponse",
     "MissingIngredientResponse",
     "RecipeMatchResponse",
+    "ExpiringIngredientResponse",
 ]

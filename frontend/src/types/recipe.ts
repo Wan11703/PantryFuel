@@ -85,4 +85,19 @@ export type RecipeMatch = {
   can_cook: boolean;
 
   missing_ingredients: MissingIngredient[];
+
+  expiration_score: number | string;
+
+  expiring_ingredients: ExpiringIngredient[];
+};
+
+export type ExpiringIngredient = {
+  id: string;
+  name: string;
+
+  expiration_date: string;
+  days_until_expiration: number;
+
+  quantity_used_grams: number | string;
+  urgency_score: number | string;
 };
