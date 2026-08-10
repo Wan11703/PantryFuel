@@ -1,15 +1,21 @@
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
-from sqlalchemy import Boolean, DateTime, String, func
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    Numeric,
+    func,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
 
 
-class User(Base):
-    __tablename__ = "users"
+class NutritionGoal(Base):
+    __tablename__ = "nutrition_goals"
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -17,26 +23,34 @@ class User(Base):
         default=uuid.uuid4,
     )
 
-    email: Mapped[str] = mapped_column(
-        String(255),
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "users.id",
+            ondelete="CASCADE",
+        ),
         unique=True,
+        nullable=False,
         index=True,
+    )
+
+    calories: Mapped[Decimal] = mapped_column(
+        Numeric(8, 2),
         nullable=False,
     )
 
-    display_name: Mapped[str] = mapped_column(
-        String(100),
+    protein: Mapped[Decimal] = mapped_column(
+        Numeric(8, 2),
         nullable=False,
     )
 
-    hashed_password: Mapped[str] = mapped_column(
-        String(255),
+    carbs: Mapped[Decimal] = mapped_column(
+        Numeric(8, 2),
         nullable=False,
     )
 
-    is_active: Mapped[bool] = mapped_column(
-        Boolean,
-        default=True,
+    fat: Mapped[Decimal] = mapped_column(
+        Numeric(8, 2),
         nullable=False,
     )
 
@@ -53,13 +67,6 @@ class User(Base):
         nullable=False,
     )
 
-    pantry_items: Mapped[list["PantryItem"]] = relationship(
-        back_populates="user",
-        cascade="all, delete-orphan",
-    )
-
-    nutrition_goal: Mapped["NutritionGoal | None"] = relationship(
-        back_populates="user",
-        cascade="all, delete-orphan",
-        uselist=False,
+    user: Mapped["User"] = relationship(
+        back_populates="nutrition_goal",
     )

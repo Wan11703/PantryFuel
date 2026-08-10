@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
-from sqlalchemy import DateTime, String, func
+from sqlalchemy import DateTime, Numeric, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -33,6 +34,42 @@ class Ingredient(Base):
         String(20),
         nullable=False,
         default="g",
+    )
+
+    # =========================
+    # Nutrition per 100 grams
+    # =========================
+
+    calories_per_100g: Mapped[Decimal | None] = mapped_column(
+        Numeric(8, 2),
+        nullable=True,
+    )
+
+    protein_per_100g: Mapped[Decimal | None] = mapped_column(
+        Numeric(8, 2),
+        nullable=True,
+    )
+
+    carbs_per_100g: Mapped[Decimal | None] = mapped_column(
+        Numeric(8, 2),
+        nullable=True,
+    )
+
+    fat_per_100g: Mapped[Decimal | None] = mapped_column(
+        Numeric(8, 2),
+        nullable=True,
+    )
+
+    # Used when pantry quantity is "piece"
+    grams_per_piece: Mapped[Decimal | None] = mapped_column(
+        Numeric(8, 2),
+        nullable=True,
+    )
+
+    # Used when pantry quantity is ml / liter
+    grams_per_ml: Mapped[Decimal | None] = mapped_column(
+        Numeric(8, 4),
+        nullable=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(

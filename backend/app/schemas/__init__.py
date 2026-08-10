@@ -7,6 +7,11 @@ from app.schemas.pantry import (
 )
 from app.schemas.user import UserCreate, UserResponse
 
+from app.schemas.nutrition import (
+    NutritionGoalResponse,
+    NutritionGoalUpsert,
+)
+
 
 __all__ = [
     "LoginRequest",
@@ -17,4 +22,6 @@ __all__ = [
     "PantryItemCreate",
     "PantryItemUpdate",
     "PantryItemResponse",
+    "NutritionGoalResponse",
+    "NutritionGoalUpsert",
 ]
