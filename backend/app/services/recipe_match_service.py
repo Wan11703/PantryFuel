@@ -8,9 +8,14 @@ from sqlalchemy.orm import Session
 from app.models.pantry_item import PantryItem
 from app.models.recipe import Recipe
 
+from app.services.ingredient_service import (
+    normalize_unit,
+)
+
 from app.services.pantry_service import (
     get_pantry_items,
 )
+
 from app.services.recipe_service import (
     get_recipes,
 )
@@ -300,6 +305,298 @@ def calculate_recipe_match(
 
             continue
 
+
+        # =========================
+        # Direct piece comparison
+        # =========================
+        #
+        # If both the recipe and pantry
+        # use "piece", we don't need to
+        # know grams_per_piece just to
+        # decide whether enough items exist.
+        #
+        # Example:
+        #
+        # Recipe needs: 2 eggs
+        # Pantry has:   8 eggs
+        #
+        # 8 >= 2 -> matched
+        #
+        # grams_per_piece is still useful
+        # for nutrition and expiration
+        # calculations, but it should not
+        # block basic quantity matching.
+
+        recipe_unit = normalize_unit(
+            recipe_ingredient.unit
+        )
+
+
+        if recipe_unit == "piece":
+            required_pieces = (
+                recipe_ingredient.quantity
+            )
+
+            available_pieces = (
+                Decimal("0")
+            )
+
+            usable_piece_batches: list[
+                PantryItem
+            ] = []
+
+            has_other_usable_units = False
+
+
+            for pantry_item in (
+                sort_pantry_batches(
+                    pantry_batches
+                )
+            ):
+
+                # Expired batches do not
+                # count as usable inventory.
+                if (
+                    pantry_item.expiration_date
+                    is not None
+                    and
+                    pantry_item.expiration_date
+                    < today
+                ):
+                    continue
+
+
+                pantry_unit = normalize_unit(
+                    pantry_item.unit
+                )
+
+
+                if pantry_unit == "piece":
+                    available_pieces += (
+                        pantry_item.quantity
+                    )
+
+                    usable_piece_batches.append(
+                        pantry_item
+                    )
+
+                else:
+                    # There may be another
+                    # pantry batch stored in
+                    # grams/kg/etc.
+                    #
+                    # If pieces alone are not
+                    # sufficient, let the
+                    # normal gram-conversion
+                    # system try those batches.
+                    has_other_usable_units = True
+
+
+            # =========================
+            # Enough pieces
+            # =========================
+
+            if (
+                available_pieces
+                >= required_pieces
+            ):
+                matched_ingredients += 1
+
+
+                # -------------------------
+                # Best-effort expiration
+                # scoring
+                # -------------------------
+                #
+                # Matching does NOT require
+                # grams_per_piece.
+                #
+                # But if grams_per_piece is
+                # available, we can still use
+                # the normal Day 10 expiration
+                # scoring system.
+
+                try:
+                    required_grams = (
+                        convert_quantity_to_grams(
+                            quantity=
+                                required_pieces,
+
+                            unit="piece",
+
+                            ingredient=
+                                ingredient,
+                        )
+                    )
+
+
+                    converted_piece_batches: list[
+                        tuple[
+                            PantryItem,
+                            Decimal,
+                        ]
+                    ] = []
+
+
+                    for pantry_item in (
+                        usable_piece_batches
+                    ):
+                        batch_grams = (
+                            convert_quantity_to_grams(
+                                quantity=(
+                                    pantry_item.quantity
+                                ),
+
+                                unit="piece",
+
+                                ingredient=
+                                    ingredient,
+                            )
+                        )
+
+
+                        converted_piece_batches.append(
+                            (
+                                pantry_item,
+                                batch_grams,
+                            )
+                        )
+
+
+                    (
+                        ingredient_expiration_score,
+                        ingredient_expiring_items,
+                    ) = calculate_expiration_priority(
+                        converted_piece_batches,
+                        required_grams,
+                        today,
+                    )
+
+
+                    recipe_expiration_score += (
+                        ingredient_expiration_score
+                    )
+
+
+                    expiring_ingredients.extend(
+                        ingredient_expiring_items
+                    )
+
+
+                except NutritionCalculationError:
+                    # That's okay.
+                    #
+                    # grams_per_piece is not
+                    # required to determine
+                    # that 8 eggs >= 2 eggs.
+                    #
+                    # We simply can't calculate
+                    # gram-based expiration
+                    # contribution for this
+                    # ingredient yet.
+                    pass
+
+
+                continue
+
+
+            # =========================
+            # Not enough pieces
+            # =========================
+            #
+            # Only mark directly as
+            # insufficient if all usable
+            # pantry batches are also stored
+            # as pieces.
+            #
+            # If another batch is stored in
+            # grams/kg/etc., fall through to
+            # the regular conversion engine.
+
+            if (
+                available_pieces > 0
+                and
+                not has_other_usable_units
+            ):
+                required_grams = None
+                available_grams = None
+                shortage_grams = None
+
+
+                # If grams_per_piece exists,
+                # provide richer shortage data.
+                try:
+                    required_grams = (
+                        convert_quantity_to_grams(
+                            quantity=
+                                required_pieces,
+
+                            unit="piece",
+
+                            ingredient=
+                                ingredient,
+                        )
+                    )
+
+
+                    available_grams = (
+                        convert_quantity_to_grams(
+                            quantity=
+                                available_pieces,
+
+                            unit="piece",
+
+                            ingredient=
+                                ingredient,
+                        )
+                    )
+
+
+                    shortage_grams = (
+                        required_grams
+                        - available_grams
+                    )
+
+
+                except NutritionCalculationError:
+                    # Matching by piece count is
+                    # still valid even without
+                    # gram conversion.
+                    pass
+
+
+                missing_ingredients.append(
+                    {
+                        "id":
+                            ingredient.id,
+
+                        "name":
+                            ingredient.name,
+
+                        "quantity":
+                            required_pieces,
+
+                        "unit":
+                            "piece",
+
+                        "required_grams":
+                            required_grams,
+
+                        "available_grams":
+                            available_grams,
+
+                        "shortage_grams":
+                            shortage_grams,
+
+                        "reason":
+                            "insufficient",
+                    }
+                )
+
+                continue
+
+
+        
 
         # =========================
         # Recipe requirement

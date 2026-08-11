@@ -13,6 +13,7 @@ from app.database.base import Base
 
 
 
+
 class Ingredient(Base):
     __tablename__ = "ingredients"
 
@@ -97,4 +98,9 @@ class Ingredient(Base):
         list["RecipeIngredient"]
     ] = relationship(
         back_populates="ingredient",
+    )
+
+    aliases: Mapped[list["IngredientAlias"]] = relationship(
+        back_populates="ingredient",
+        cascade="all, delete-orphan",
     )

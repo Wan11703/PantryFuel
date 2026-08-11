@@ -14,6 +14,14 @@ from app.api.routes.recipes import (
     router as recipes_router,
 )
 
+from app.api.routes.ingredients import (
+    router as ingredients_router,
+)
+
+from app.api.routes.meal_logs import (
+    router as meal_logs_router,
+)
+
 app = FastAPI(
     title="PantryFuel API",
     description="Smart pantry, recipe recommendation, and nutrition tracking API",
@@ -39,6 +47,12 @@ app.include_router(auth_router)
 app.include_router(pantry_router)
 app.include_router(nutrition_router)
 app.include_router(recipes_router)
+app.include_router(
+    ingredients_router
+)
+app.include_router(
+    meal_logs_router
+)
 
 
 

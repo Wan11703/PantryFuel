@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
 
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -62,4 +63,9 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
         uselist=False,
+    )
+
+    meal_logs: Mapped[list["MealLog"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
     )

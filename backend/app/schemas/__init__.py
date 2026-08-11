@@ -36,6 +36,19 @@ from app.schemas.recipe import (
     ExpiringIngredientResponse,
 )
 
+from app.schemas.ingredient import (
+    IngredientAliasCreate,
+    IngredientAliasResponse,
+    IngredientResolveResponse,
+    IngredientWithAliasesResponse,
+)
+
+from app.schemas.meal_log import (
+    ManualMealLogCreate,
+    MealLogResponse,
+    RecipeMealLogCreate,
+)
+
 __all__ = [
     "LoginRequest",
     "TokenResponse",
@@ -53,4 +66,11 @@ __all__ = [
     "MissingIngredientResponse",
     "RecipeMatchResponse",
     "ExpiringIngredientResponse",
+    "IngredientAliasCreate",
+    "IngredientAliasResponse",
+    "IngredientResolveResponse",
+    "IngredientWithAliasesResponse",
+    "ManualMealLogCreate",
+    "MealLogResponse",
+    "RecipeMealLogCreate",
 ]

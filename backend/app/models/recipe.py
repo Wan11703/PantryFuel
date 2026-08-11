@@ -83,3 +83,7 @@ class Recipe(Base):
         cascade="all, delete-orphan",
         order_by="RecipeIngredient.position",
     )
+
+    meal_logs: Mapped[list["MealLog"]] = relationship(
+        back_populates="recipe",
+    )
